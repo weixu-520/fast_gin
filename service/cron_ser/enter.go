@@ -6,12 +6,10 @@ import (
 )
 
 func Func1() {
-	fmt.Println(time.Now().Format(("2005-01-02 15:04:05")))
+	fmt.Println(time.Now().Format("2006-01-02 15:04:05"))
 }
-func cronInit() {
-	timezone, _ := time.LoadLocation("Asia/Shanghai")
-	crontab := cron.New(cron.WithSeconds(), cron.WithLocation(timezone))
 
-	// crontab.AddFunc("* * * * * *", Func1)
-	crontab.Start()
+func CronInit() {
+	// TODO: 后续集成 cron 定时任务功能
+	fmt.Println("cron 定时任务模块待实现")
 }

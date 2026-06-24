@@ -65,7 +65,7 @@ func (User) Create() {
 }
 func (User) List() {
 	var userList []models.UserModel
-	global.DB.Order("created_id desc").Limit(10).Find(&userList)
+	global.DB.Order("created_at desc").Limit(10).Find(&userList)
 	for _, model := range userList {
 		fmt.Printf("用户id: %d  用户名：%s  用户昵称：%s 用户角色：%d  创建时间：%s\n",
 			model.ID, model.Username, model.Nickname, model.RoleID, model.CreatedAt.Format("2006-01-02 15:04:05"))

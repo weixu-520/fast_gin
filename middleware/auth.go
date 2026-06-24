@@ -10,18 +10,19 @@ import (
 
 func AuthMiddleware(c *gin.Context) {
 	token := c.GetHeader("token")
-	_, err := jwts.CheckToken(token)
+	claims, err := jwts.CheckToken(token)
 	if err != nil {
 		c.JSON(200, gin.H{"code": 7, "msg": "认证失败", "data": gin.H{}})
 		c.Abort()
 		return
 	}
-	c.Next()
 	if redis_ser.HasLogout(token) {
 		res.FailWithMsg("当前登录已注销", c)
 		c.Abort()
 		return
 	}
+	c.Set("claims", claims)
+	c.Next()
 }
 
 func AdminMiddleware(c *gin.Context) {

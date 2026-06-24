@@ -20,7 +20,7 @@ var Options FlagOptions
 // 命令行配置
 func Parse() {
 
-	flag.StringVar(&Options.File, "f", "settings.yaml", "配置文件路径")
+	flag.StringVar(&Options.File, "f", "settings.yml", "配置文件路径")
 	flag.StringVar(&Options.Menu, "m", "", "菜单 user")
 	flag.StringVar(&Options.Type, "t", "", "create list")
 	flag.BoolVar(&Options.Version, "v", false, "打印当前版本")

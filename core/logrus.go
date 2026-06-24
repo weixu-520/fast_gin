@@ -48,6 +48,9 @@ func (MyLog) Format(entry *logrus.Entry) ([]byte, error) {
 		fileVal := fmt.Sprintf("%s:%d", path.Base(entry.Caller.File), entry.Caller.Line)
 		//自定义输出格式
 		fmt.Fprintf(b, "[%s] \x1b[%dm[%s]\x1b[0m %s %s %s\n", timestamp, levelColor, entry.Level, fileVal, funcVal, entry.Message)
+	} else {
+		// 没有 caller 信息时，只输出基本内容
+		fmt.Fprintf(b, "[%s] \x1b[%dm[%s]\x1b[0m %s\n", timestamp, levelColor, entry.Level, entry.Message)
 	}
 	return b.Bytes(), nil
 }
@@ -85,32 +88,49 @@ func (hook *MyHook) Fire(entry *logrus.Entry) error {
 		hook.date = date
 	}
 	if entry.Level <= logrus.ErrorLevel {
-		hook.errFile.Write([]byte(msg))
+		if hook.errFile != nil {
+			hook.errFile.Write([]byte(msg))
+		}
 	}
 
-	hook.file.Write([]byte(msg))
+	if hook.file != nil {
+		hook.file.Write([]byte(msg))
+	}
 	return nil
 }
+
 func (hook *MyHook) rotateFiles(timer string) error {
+	// 关闭旧文件
 	if hook.file != nil {
 		hook.file.Close()
+		hook.file = nil
 	}
-	if hook.file == nil {
-		//创建目录
-		logDir := fmt.Sprintf("%s/%s", hook.logPath, timer)
-		os.MkdirAll(logDir, 0666)
-		//文件地址
-		logPath := fmt.Sprintf("%s/info.log", logDir)
-		file, _ := os.OpenFile(logPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
-		hook.file = file
+	if hook.errFile != nil {
+		hook.errFile.Close()
+		hook.errFile = nil
+	}
 
-		errLogPath := fmt.Sprintf("%s/err.log", logDir)
-		errFile, _ := os.OpenFile(errLogPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
-		hook.errFile = errFile
+	// 创建新目录和文件
+	logDir := fmt.Sprintf("%s/%s", hook.logPath, timer)
+	os.MkdirAll(logDir, 0666)
+
+	logPath := fmt.Sprintf("%s/info.log", logDir)
+	file, err := os.OpenFile(logPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	if err != nil {
+		return err
 	}
+	hook.file = file
+
+	errLogPath := fmt.Sprintf("%s/err.log", logDir)
+	errFile, err := os.OpenFile(errLogPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	if err != nil {
+		return err
+	}
+	hook.errFile = errFile
+
 	return nil
-
 }
+
 func (*MyHook) Levels() []logrus.Level {
 	return logrus.AllLevels
 }

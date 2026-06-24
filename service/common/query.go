@@ -24,12 +24,11 @@ func Query[T any](model T, option QueryOption) (list []T, count int64, err error
 		if len(option.Likes) != 0 {
 			LikeQuery := global.DB.Where("")
 			for _, column := range option.Likes {
-				LikeQuery.Or(
+				LikeQuery = LikeQuery.Or(
 					fmt.Sprintf("%s like ?", column), fmt.Sprintf("%%%s%%", option.Key))
 			}
-			query.Where(LikeQuery)
+			query = query.Where(LikeQuery)
 		}
-
 	}
 	//预加载
 	for _, preload := range option.Preloads {
@@ -47,11 +46,15 @@ func Query[T any](model T, option QueryOption) (list []T, count int64, err error
 	if option.Order == "" {
 		option.Order = "created_at desc"
 	}
-	db := global.DB.Where("")
+	db := global.DB.Where(query)
 	if option.Debug {
 		db = db.Debug()
 	}
-	db.Where(query).Limit(option.Limit).Offset(offset).Order(option.Order).Find(&list)
-	db.Model(model).Where(query).Count(&count)
+	if err = db.Limit(option.Limit).Offset(offset).Order(option.Order).Find(&list).Error; err != nil {
+		return
+	}
+	if err = db.Model(model).Where(query).Count(&count).Error; err != nil {
+		return
+	}
 	return
 }

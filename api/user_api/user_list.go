@@ -11,7 +11,7 @@ import (
 
 func (UserApi) UserListView(c *gin.Context) {
 	var cr = middleware.GetBind[models.PageInfo](c)
-	list, count, _ := common.QueryOption(models.UserModel{}, common.QueryOption{
+	list, count, _ := common.Query(models.UserModel{}, common.QueryOption{
 		PageInfo: cr,
 		Likes:    []string{"username", "nickname"},
 		Debug:    true,

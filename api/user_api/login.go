@@ -28,6 +28,7 @@ func (UserApi) LoginView(c *gin.Context) {
 	}
 	if !pwd.CompareHashAndPassword(user.Password, cr.Password) {
 		res.FailWithMsg("用户名或密码错误", c)
+		return
 	}
 	token, err := jwts.SetToken(jwts.Claims{
 		UserID: user.ID,
